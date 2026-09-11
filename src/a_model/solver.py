@@ -417,14 +417,10 @@ class CoupledRadialSolver:
         target = self.options.boundary_tolerance * scale
         lower_residual, _, _, _ = evaluate(lower)
         upper_residual, _, _, _ = evaluate(upper)
-        if abs(lower_residual) <= target:
-            final = evaluate(lower)
-            return BoundaryState(final[1], lower, final[2], final[3])
-        if abs(upper_residual) <= target:
-            final = evaluate(upper)
-            return BoundaryState(final[1], upper, final[2], final[3])
         bracket_guard = 64.0 * ulp(max(abs(lower), abs(upper), 1.0))
-        if lower_residual > bracket_guard or upper_residual < -bracket_guard:
+        if lower_residual > max(bracket_guard, target) or upper_residual < -max(
+            bracket_guard, target
+        ):
             raise _BoundaryFailure(
                 "Robin moisture root was not bracketed by cell and environment values "
                 f"(F_low={lower_residual:.6e}, F_high={upper_residual:.6e})"
@@ -471,6 +467,11 @@ class CoupledRadialSolver:
         # Fold/global fallback: progressively refine the admissible interval and
         # use the first detected surviving bracket in lower-to-upper order.  It
         # is a deterministic branch-loss policy, not a global-nearest-root API.
+        # Endpoint roots participate in that same ordering, but only after the
+        # accepted hint has had a chance to continue its local branch.
+        if abs(lower_residual) <= target:
+            final = evaluate(lower)
+            return BoundaryState(final[1], lower, final[2], final[3])
         brackets: list[tuple[float, float, float, float]] = []
         for segment_count in (16, 64, 256, 1024):
             points = [lower + span * index / segment_count for index in range(segment_count + 1)]
@@ -483,6 +484,9 @@ class CoupledRadialSolver:
             if brackets:
                 break
         if not brackets:
+            if abs(upper_residual) <= target:
+                final = evaluate(upper)
+                return BoundaryState(final[1], upper, final[2], final[3])
             raise _BoundaryFailure(
                 "Robin continuation correction failed and adaptive fallback found no root bracket"
             )

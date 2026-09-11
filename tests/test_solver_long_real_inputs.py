@@ -3,7 +3,7 @@
 import unittest
 
 from a_model import load_environment, load_radius
-from a_model.fvm import RadialGrid, reconstruct_center
+from a_model.fvm import RadialGrid, reconstruct_center, reconstruct_surface
 from a_model.solver import CoupledRadialSolver, SolverOptions
 
 
@@ -39,6 +39,60 @@ class RealInputLongRunTests(unittest.TestCase):
             )
         )
         return result
+
+    def test_q1_real_first_half_second_continues_from_the_accepted_high_branch(self):
+        solver = CoupledRadialSolver("q1", RadialGrid(80), self.environment, 0.02)
+        environment_temperature, environment_moisture = self.environment.at(0.5)
+        self.assertEqual(environment_temperature, 28.0044)
+        self.assertEqual(environment_moisture, 0.01963325)
+
+        high = solver.boundary_state(
+            28.0,
+            2.55,
+            environment_temperature,
+            environment_moisture,
+            0.02,
+            2.55,
+        )
+        high_flux = solver.case.mass_transfer_coefficient * (
+            high.moisture - environment_moisture
+        )
+        self.assertAlmostEqual(high.moisture, 2.499597100318158, delta=1.0e-9)
+        self.assertAlmostEqual(high_flux, 1.9839710802545263e-6, delta=1.0e-12)
+        mapped = reconstruct_surface(
+            solver.grid,
+            2.55,
+            environment_moisture,
+            0.02,
+            high.moisture_transport,
+            solver.case.mass_transfer_coefficient,
+        )
+        self.assertLessEqual(
+            abs(high.moisture - mapped),
+            solver.options.boundary_tolerance * 2.55,
+        )
+
+        low = solver.boundary_state(
+            28.0,
+            2.55,
+            environment_temperature,
+            environment_moisture,
+            0.02,
+            environment_moisture,
+        )
+        self.assertEqual(low.moisture, environment_moisture)
+
+        first = solver.advance(solver.initial_state(), 0.5)
+        first_flux = solver.case.mass_transfer_coefficient * (
+            first.diagnostics.boundary.moisture
+            - first.diagnostics.environment_moisture
+        )
+        self.assertGreater(first.state.surface_moisture, 2.0)
+        self.assertGreater(first_flux, 1.0e-6)
+        self.assertLessEqual(
+            first.diagnostics.maximum_moisture_scaled_residual,
+            solver.options.residual_tolerance,
+        )
 
     def test_q2q3_reaches_a_coarse_first_below_target_checkpoint(self):
         result = self._assert_healthy_run("q2q3", 856_020.0, 0.02)
