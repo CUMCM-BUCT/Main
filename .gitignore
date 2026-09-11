@@ -16,6 +16,8 @@ venv/
 outputs/
 tmp/
 temp/
+artifacts/work/
+data/processed/
 
 # Local secrets and machine settings
 .env

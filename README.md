@@ -27,6 +27,18 @@ data/processed/   可重新生成的数据
 artifacts/final/  确认后供论文使用的结果
 ```
 
+## A题 V4 当前进度
+
+阶段1已固定三套参数包、单位与H1-H6假设，提供附件1/2的只读加载、严格校验、线性插值与尾部延拓，并定义四个结果工作簿的采样契约。尚未实现PDE/FVM求解器或生成正式结果。
+
+```powershell
+powershell -File scripts/test.ps1
+$env:PYTHONPATH = "src"
+python scripts/check_inputs.py
+```
+
+细节见 [docs/model_v4_phase1.md](docs/model_v4_phase1.md)。
+
 ## 竞赛期间注意事项
 
 当前仓库仅在本地配置。涉及当届赛题的内容是否可以存放到远端平台，应严格以当届竞赛规则和赛区解释为准。

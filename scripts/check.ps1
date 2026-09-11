@@ -24,7 +24,11 @@ if ($forbiddenFiles) {
     throw "Tracked cache, temporary, or local secret files found."
 }
 
-$pythonFiles = & git ls-files '*.py'
+$pythonFiles = @(& git ls-files --cached --others --exclude-standard -- '*.py')
+if ($LASTEXITCODE -ne 0) {
+    throw "Unable to enumerate Python files."
+}
+$pythonFiles = $pythonFiles | Sort-Object -Unique
 if ($pythonFiles) {
     $python = Get-Command python -ErrorAction SilentlyContinue
     if (-not $python) {
