@@ -358,7 +358,7 @@ class CoupledRadialSolver:
             not isfinite(surface_moisture_hint) or surface_moisture_hint < 0.0
         ):
             raise ValueError("Surface-moisture continuation hint must be finite and non-negative.")
-        half_distance = self.grid.spacing / 2.0
+        half_distance = self.grid.surface_half_width
         cell_moisture_transport = self.case.diffusivity(moisture, temperature_c)
 
         def evaluate(surface_moisture: float) -> tuple[float, float, float, float]:

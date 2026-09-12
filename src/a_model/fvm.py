@@ -19,9 +19,15 @@ class DiscretizationError(ValueError):
 
 @dataclass(frozen=True)
 class RadialGrid:
-    """Uniform, cell-centred grid in the dimensionless radial coordinate."""
+    """Cell-centred grid in the dimensionless radial coordinate.
+
+    ``grading_exponent=1`` is the original uniform V4 grid.  Exponents greater
+    than one use ``xi=1-(1-s)**p`` and therefore refine the Robin boundary
+    layer without changing the material-coordinate control volumes.
+    """
 
     cell_count: int
+    grading_exponent: float = 1.0
 
     def __post_init__(self) -> None:
         if (
@@ -30,6 +36,34 @@ class RadialGrid:
             or self.cell_count < 2
         ):
             raise DiscretizationError("The radial grid needs at least two cells.")
+        if (
+            isinstance(self.grading_exponent, bool)
+            or not isinstance(self.grading_exponent, (int, float))
+            or not isfinite(self.grading_exponent)
+            or self.grading_exponent < 1.0
+        ):
+            raise DiscretizationError(
+                "The surface-grading exponent must be finite and at least one."
+            )
+        if not self.is_uniform:
+            faces = self.faces
+            if any(
+                not isfinite(value)
+                for value in faces
+            ) or any(right <= left for left, right in zip(faces, faces[1:])):
+                raise DiscretizationError(
+                    "The grading exponent collapses a cell at floating-point precision."
+                )
+
+    @classmethod
+    def surface_graded(cls, cell_count: int, exponent: float = 2.0) -> "RadialGrid":
+        """Construct a grid smoothly refined toward ``xi=1``."""
+
+        return cls(cell_count, exponent)
+
+    @property
+    def is_uniform(self) -> bool:
+        return self.grading_exponent == 1.0
 
     @property
     def spacing(self) -> float:
@@ -38,12 +72,37 @@ class RadialGrid:
     @property
     def faces(self) -> tuple[float, ...]:
         dx = self.spacing
-        return tuple(index * dx for index in range(self.cell_count + 1))
+        if self.is_uniform:
+            # Keep the established arithmetic exactly for reproducible Q1 data.
+            return tuple(index * dx for index in range(self.cell_count + 1))
+        exponent = float(self.grading_exponent)
+        return tuple(
+            1.0 - (1.0 - index * dx) ** exponent
+            for index in range(self.cell_count + 1)
+        )
 
     @property
     def centers(self) -> tuple[float, ...]:
         dx = self.spacing
-        return tuple((index + 0.5) * dx for index in range(self.cell_count))
+        if self.is_uniform:
+            return tuple((index + 0.5) * dx for index in range(self.cell_count))
+        faces = self.faces
+        return tuple((left + right) / 2.0 for left, right in zip(faces, faces[1:]))
+
+    @property
+    def center_distances(self) -> tuple[float, ...]:
+        """Distances between adjacent representative points in ``xi``."""
+
+        centers = self.centers
+        return tuple(right - left for left, right in zip(centers, centers[1:]))
+
+    @property
+    def surface_half_width(self) -> float:
+        """Distance from the last representative point to ``xi=1``."""
+
+        if self.is_uniform:
+            return self.spacing / 2.0
+        return 1.0 - self.centers[-1]
 
     @property
     def weights(self) -> tuple[float, ...]:
@@ -114,14 +173,30 @@ def internal_conductances(
     if any(not isfinite(value) or value < 0.0 for value in diffusivities):
         raise DiscretizationError("Transport coefficients must be finite and non-negative.")
 
-    dx = grid.spacing
+    faces = grid.faces
+    centers = grid.centers
     result: list[float] = []
     for face_index in range(1, grid.cell_count):
-        face = face_index * dx
+        if grid.is_uniform:
+            # Preserve the exact uniform-grid arithmetic used by verified Q1.
+            dx = grid.spacing
+            face = face_index * dx
+            left_distance = right_distance = dx / 2.0
+            center_distance = dx
+        else:
+            face = faces[face_index]
+            left_distance = face - centers[face_index - 1]
+            right_distance = centers[face_index] - face
+            center_distance = centers[face_index] - centers[face_index - 1]
         coefficient = distance_weighted_harmonic(
-            diffusivities[face_index - 1], diffusivities[face_index], dx / 2.0, dx / 2.0
+            diffusivities[face_index - 1],
+            diffusivities[face_index],
+            left_distance,
+            right_distance,
         )
-        result.append(2.0 * face * coefficient / (radius_m * radius_m * dx))
+        result.append(
+            2.0 * face * coefficient / (radius_m * radius_m * center_distance)
+        )
     return tuple(result)
 
 
@@ -142,7 +217,7 @@ def surface_conductance(
         )
     if boundary_transport == 0.0:
         return 0.0
-    delta_m = radius_m * (1.0 - grid.centers[-1])
+    delta_m = radius_m * grid.surface_half_width
     return (2.0 / radius_m) / (delta_m / boundary_transport + 1.0 / transfer_coefficient)
 
 
@@ -166,21 +241,33 @@ def reconstruct_surface(
         raise DiscretizationError("Robin transfer coefficient must be finite and positive.")
     if boundary_transport == 0.0:
         return environment_value
-    delta_m = radius_m * (1.0 - grid.centers[-1])
+    delta_m = radius_m * grid.surface_half_width
     return (
         boundary_transport * last_cell_value
         + transfer_coefficient * delta_m * environment_value
     ) / (boundary_transport + transfer_coefficient * delta_m)
 
 
-def reconstruct_center(cell_values: Sequence[float]) -> float:
-    """Even-quadratic centre reconstruction for radial cell averages (V4 eq. 42)."""
+def reconstruct_center(
+    cell_values: Sequence[float], grid: RadialGrid | None = None
+) -> float:
+    """Recover the centre of an even quadratic from two radial cell averages.
+
+    Omitting ``grid`` retains V4 equation (42) for backward compatibility.
+    """
 
     if len(cell_values) < 2:
         raise DiscretizationError("Centre reconstruction needs the first two cell averages.")
     if not isfinite(cell_values[0]) or not isfinite(cell_values[1]):
         raise DiscretizationError("Cell values must be finite.")
-    return (5.0 * cell_values[0] - cell_values[1]) / 4.0
+    if grid is None or grid.is_uniform:
+        return (5.0 * cell_values[0] - cell_values[1]) / 4.0
+    first_left, first_right, second_right = grid.faces[:3]
+    first_moment = (first_left * first_left + first_right * first_right) / 2.0
+    second_moment = (first_right * first_right + second_right * second_right) / 2.0
+    return (
+        second_moment * cell_values[0] - first_moment * cell_values[1]
+    ) / (second_moment - first_moment)
 
 
 def freeze_operator(
@@ -341,11 +428,11 @@ def sample_reconstructed(
     if not isfinite(xi) or xi < 0.0 or xi > 1.0:
         raise DiscretizationError("xi must lie in [0, 1].")
     if xi == 0.0:
-        return reconstruct_center(cell_values)
+        return reconstruct_center(cell_values, grid)
     if xi == 1.0:
         return surface_value
     points = (0.0, *grid.centers, 1.0)
-    values = (reconstruct_center(cell_values), *cell_values, surface_value)
+    values = (reconstruct_center(cell_values, grid), *cell_values, surface_value)
     for left_index, right_point in enumerate(points[1:]):
         if xi <= right_point:
             left_point = points[left_index]
@@ -359,4 +446,4 @@ def maximum_reconstructed(
 ) -> float:
     """Maximum of the current piecewise-linear reconstruction, including both boundaries."""
 
-    return max(reconstruct_center(cell_values), *cell_values, surface_value)
+    return max(reconstruct_center(cell_values, grid), *cell_values, surface_value)
