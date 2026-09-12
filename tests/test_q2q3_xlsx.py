@@ -7,7 +7,7 @@ import unittest
 
 from openpyxl import Workbook, load_workbook
 
-from a_model.q2q3_xlsx import CSV_HEADER, CSV_NAMES, export_workbooks, inspect_sources
+from a_model.q2q3_xlsx import CSV_HEADER, CSV_NAMES, export_workbooks, export_workbooks_fast, inspect_sources
 
 
 class Q2Q3XlsxTests(unittest.TestCase):
@@ -96,6 +96,23 @@ class Q2Q3XlsxTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "formal"):
             export_workbooks(self.source, self.templates / "result2.xlsx", self.templates / "result3.xlsx", output)
         self.assertFalse((output / "result2.xlsx").exists())
+
+    def test_fast_streaming_export_preserves_contract(self):
+        self.write_csvs()
+        output = self.root / "fast-output"
+        result2, result3 = export_workbooks_fast(
+            self.source, self.templates / "result2.xlsx", self.templates / "result3.xlsx", output
+        )
+        self.assertTrue(result2.is_file())
+        self.assertTrue(result3.is_file())
+        result2_book = load_workbook(result2, read_only=True)
+        result3_book = load_workbook(result3, read_only=True)
+        try:
+            self.assertEqual(result2_book.sheetnames, ["温度", "水分浓度"])
+            self.assertEqual(result3_book.sheetnames, ["Sheet1"])
+        finally:
+            result2_book.close()
+            result3_book.close()
 
     def test_off_cadence_row_must_be_terminal(self):
         self.write_csvs()

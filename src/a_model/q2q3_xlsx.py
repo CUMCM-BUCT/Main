@@ -10,6 +10,8 @@ import os
 from pathlib import Path
 import tempfile
 
+import xlsxwriter
+
 from openpyxl import Workbook, load_workbook
 from openpyxl.cell import WriteOnlyCell
 from openpyxl.utils import get_column_letter
@@ -94,8 +96,6 @@ def inspect_sources(source_dir):
     temperature, moisture, q3 = (stats[name] for name in CSV_NAMES)
     if temperature.rows != moisture.rows or temperature.first[0] != moisture.first[0] or temperature.last[0] != moisture.last[0]:
         raise ValueError("The two result2 CSVs do not share one time grid.")
-    if q3.last[0] != moisture.last[0]:
-        raise ValueError("result3 does not end at the same exact event state as result2.")
     return stats
 
 
@@ -112,8 +112,11 @@ def validate_formal_metadata(source_dir, stats):
     if result.get("status") != "event":
         raise ValueError("Metadata does not record a completed Q3 event.")
     event_time = result.get("event", {}).get("state", {}).get("time_s")
-    if event_time != stats[CSV_NAMES[0]].last[0]:
-        raise ValueError("Metadata event time does not match the CSV terminal row.")
+    if event_time != stats[CSV_NAMES[2]].last[0]:
+        raise ValueError("Metadata event time does not match the result3 terminal row.")
+    q2_scope = metadata.get("q2_scope_end_s")
+    if q2_scope is not None and q2_scope != stats[CSV_NAMES[0]].last[0]:
+        raise ValueError("Metadata Q2 scope does not match the result2 terminal row.")
     recorded = metadata.get("checkpoint", {}).get("files", {})
     for name, stat in stats.items():
         if recorded.get(name, {}).get("rows") != stat.rows or recorded.get(name, {}).get("sha256") != stat.sha256:
@@ -241,3 +244,54 @@ def export_workbooks(source_dir, result2_template, result3_template, output_dir)
         for path in temporaries:
             if path.exists():
                 path.unlink()
+
+
+def export_workbooks_fast(source_dir, result2_template, result3_template, output_dir):
+    """Write the validated contract with xlsxwriter's constant-memory path."""
+    source_dir, output_dir = Path(source_dir), Path(output_dir)
+    stats = inspect_sources(source_dir)
+    validate_formal_metadata(source_dir, stats)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    result2, result3 = output_dir / "result2.xlsx", output_dir / "result3.xlsx"
+    if result2.exists() or result3.exists():
+        raise FileExistsError("result2.xlsx or result3.xlsx already exists; choose a new output directory.")
+    template2 = load_workbook(result2_template, read_only=False)
+    template3 = load_workbook(result3_template, read_only=False)
+    try:
+        if tuple(template2.sheetnames) != ("温度", "水分浓度") or tuple(template3.sheetnames) != ("Sheet1",):
+            raise ValueError("Templates do not have the required worksheet names.")
+        width_a = template2["温度"].column_dimensions["A"].width or 19.625
+        width_b = template2["温度"].column_dimensions["B"].width or 9.625
+        width_3a = template3["Sheet1"].column_dimensions["A"].width or width_a
+        width_3b = template3["Sheet1"].column_dimensions["B"].width or width_b
+    finally:
+        template2.close()
+        template3.close()
+
+    header = list(XLSX_HEADER)
+    def write_book(path, sheets, widths):
+        book = xlsxwriter.Workbook(path, {"constant_memory": True})
+        header_format = book.add_format({"bold": True, "align": "center", "border": 1})
+        number_format = book.add_format({"num_format": NUMBER_FORMAT})
+        try:
+            for sheet_name, csv_name in sheets:
+                sheet = book.add_worksheet(sheet_name)
+                sheet.set_column(0, 0, widths[0])
+                sheet.set_column(1, len(XLSX_HEADER) - 1, widths[1])
+                sheet.write_row(0, 0, header, header_format)
+                with (source_dir / csv_name).open("r", encoding="utf-8", newline="") as stream:
+                    reader = csv.reader(stream)
+                    next(reader)
+                    for row_index, row in enumerate(reader, 1):
+                        values = _numeric_row(row, source_dir / csv_name, row_index + 1)
+                        sheet.write_number(row_index, 0, _excel_number(values[0]), number_format)
+                        for column, value in enumerate(values[1:], 1):
+                            sheet.write_number(row_index, column, _excel_number(value), number_format)
+        finally:
+            book.close()
+
+    write_book(result2, (("温度", CSV_NAMES[0]), ("水分浓度", CSV_NAMES[1])), (width_a, width_b))
+    write_book(result3, (("Sheet1", CSV_NAMES[2]),), (width_3a, width_3b))
+    verify_workbook(result2, {"温度": stats[CSV_NAMES[0]], "水分浓度": stats[CSV_NAMES[1]]})
+    verify_workbook(result3, {"Sheet1": stats[CSV_NAMES[2]]})
+    return result2, result3

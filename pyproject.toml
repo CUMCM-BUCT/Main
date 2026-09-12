@@ -7,7 +7,7 @@ name = "a-problem-model"
 version = "0.1.0"
 description = "2026 数学建模 A 题可复现计算代码"
 requires-python = ">=3.11"
-dependencies = ["openpyxl>=3.1"]
+dependencies = ["openpyxl>=3.1", "xlsxwriter>=3.1"]
 
 [tool.setuptools]
 package-dir = {"" = "src"}
