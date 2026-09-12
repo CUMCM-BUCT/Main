@@ -1,0 +1,38 @@
+{
+  "classification": "competition_candidate_error_transparent",
+  "generated_date": "2026-09-12",
+  "q1": {
+    "status": "convergence_verified",
+    "time_s": 1800.0,
+    "temperature_center_C": 33.575644064872854,
+    "temperature_surface_C": 36.785737563456458,
+    "moisture_center": 2.5499923373040589,
+    "moisture_surface": 1.5102558587703572,
+    "source": "data/processed/q1/phase4_verified"
+  },
+  "q2_q3": {
+    "status": "candidate_not_strictly_converged",
+    "selected_direct_run": "N320_dt7p5_grade2",
+    "event_time_s": 206926.67724609375,
+    "event_time_h": 57.47963256835938,
+    "controlling_location": "center",
+    "event_bracket_width_s": 0.00732421875,
+    "adjacent_space_event_difference_s": 8.583984375,
+    "adjacent_time_event_difference_s": 23.5400390625,
+    "conservative_reported_uncertainty_s": 60.0,
+    "source": "data/processed/q2q3/convergence_graded_v2"
+  },
+  "q4": {
+    "status": "candidate_not_strictly_converged",
+    "selected_direct_run": "N160_dt15_grade2",
+    "event_time_s": 183970.25390625,
+    "event_time_h": 51.102848307291666,
+    "controlling_location": "center",
+    "event_radius_cm": 1.2,
+    "event_surface_moisture": 0.05261981474982109,
+    "event_bracket_width_s": 0.00732421875,
+    "adjacent_space_event_difference_s": 25.95703125,
+    "adjacent_time_event_difference_s": 35.54443359375,
+    "conservative_reported_uncertainty_s": 70.0
+  }
+}

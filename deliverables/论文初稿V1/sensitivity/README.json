@@ -1,0 +1,11 @@
+{
+  "design": "one-at-a-time ±20% perturbation",
+  "q1_like_short": "q2q3 variable-property model at 1800 s, N=320, dt=3.75 s",
+  "q3": "N=80, dt=60 s candidate event runs",
+  "q4": "N=40, dt=60 s candidate event runs",
+  "parameters": [
+    "D",
+    "h",
+    "hm"
+  ]
+}

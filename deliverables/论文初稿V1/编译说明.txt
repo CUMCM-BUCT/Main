@@ -1,0 +1,10 @@
+本论文必须使用 XeLaTeX 编译，不要使用 pdfLaTeX。
+
+推荐编译顺序：
+1. xelatex -output-directory=build 数模国赛.tex
+2. bibtex build/数模国赛
+3. xelatex -output-directory=build 数模国赛.tex
+4. xelatex -output-directory=build 数模国赛.tex
+
+Windows 字体配置使用 ctex 的 fontset=windows，中文字体为 SimSun/SimHei/Microsoft YaHei。
+如果 TeX 编辑器默认使用 pdfLaTeX，请将编译引擎切换为 XeLaTeX。

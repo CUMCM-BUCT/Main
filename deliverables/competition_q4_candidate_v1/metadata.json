@@ -1,0 +1,43 @@
+{
+  "result_classification": "candidate_only",
+  "source_files_unchanged": true,
+  "case_id": "q4",
+  "numerical_settings": {
+    "cells": 320,
+    "grading_exponent": 2.0,
+    "dt_s": 60.0,
+    "sample_interval_s": 60.0,
+    "end_time_s": 259200.0,
+    "event_tolerance_s": 0.01
+  },
+  "result": {
+    "status": "event",
+    "event_time_s": 184070.41259765625
+  },
+  "radius_source": {
+    "filename": "附件2.xlsx",
+    "worksheet": "Sheet1",
+    "sha256": "5563acbfa4b4afb10cc6c03e2207e5369bf39da27576672aff14cc5c32e704af",
+    "byte_size": 11485,
+    "records": 145
+  },
+  "environment_source": {
+    "filename": "附件1.xlsx",
+    "worksheet": "Sheet1",
+    "sha256": "7ef32870abeef420b89560b2530ff60dfe4255917805151d89988d0311af9dd7",
+    "byte_size": 16586,
+    "records": 241
+  },
+  "steps": 3068,
+  "diagnostics": {
+    "rejected_attempts": 0,
+    "max_heat_residual": 2.807965663495098e-16,
+    "max_moisture_residual": 6.696598240415747e-10
+  },
+  "file": {
+    "rows": 3068,
+    "sha256": "da88d865d7efc8ed33a68c0b94c94f43c8e6fc21df0fa6989ed50ee16e977bbd"
+  },
+  "result4_xlsx_sha256": "8a7e79e97f38f1e3756a08082b20bd61c845c294771836c59be75f1f85bcb08d",
+  "result4_xlsx": "deliverables\\competition_q4_candidate_v1\\result4.xlsx"
+}

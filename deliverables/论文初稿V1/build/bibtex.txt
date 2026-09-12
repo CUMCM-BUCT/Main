@@ -1,0 +1,4 @@
+This is BibTeX, Version 0.99d (TeX Live 2025)
+The top-level auxiliary file: ��ģ����.aux
+The style file: gbt7714-numerical.bst
+Database file #1: ref.bib

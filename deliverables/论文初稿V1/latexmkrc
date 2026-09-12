@@ -1,0 +1,4 @@
+$pdf_mode = 5;
+$xelatex = 'F:/textlive/texlive/2025/bin/windows/xelatex.exe -interaction=nonstopmode -halt-on-error %O %S';
+$bibtex = 'F:/textlive/texlive/2025/bin/windows/bibtex.exe %O %B';
+$out_dir = 'build';

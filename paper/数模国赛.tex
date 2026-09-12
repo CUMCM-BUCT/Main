@@ -1,0 +1,644 @@
+%! Mode:: "TeX:UTF-8"
+%! TEX program = xelatex
+\PassOptionsToPackage{quiet}{xeCJK}
+\documentclass[withoutpreface,bwprint]{cumcmthesis}
+\usepackage{etoolbox}
+\usepackage{ctex}
+\BeforeBeginEnvironment{tabular}{\zihao{-5}}
+\usepackage[numbers,sort&compress]{natbib}  % 文献管理宏包
+\usepackage[framemethod=TikZ]{mdframed}  % 框架宏包
+\usepackage{url}  % 网页链接宏包
+\usepackage{subcaption}  % 子图宏包
+\newcolumntype{C}{>{\centering\arraybackslash}X}
+\newcolumntype{R}{>{\raggedleft\arraybackslash}X}
+\newcolumntype{L}{>{\raggedright\arraybackslash}X}\renewcommand{\textbf}[1]{{\song\bfseries #1}}
+
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+
+\tikzstyle{startstop} = [rectangle, rounded corners, minimum width=3cm, minimum height=1cm,text centered, draw=black, fill=red!20]
+\tikzstyle{process} = [rectangle, minimum width=3.5cm, minimum height=1cm, text centered, draw=black, fill=blue!20]
+\tikzstyle{decision} = [diamond, aspect=2, minimum width=3.5cm, minimum height=1cm, text centered, draw=black, fill=green!20]
+\tikzstyle{arrow} = [thick,->,>=stealth]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\title{基于热质耦合与动边界的圆柱药材烘干建模}  % 论文标题
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 正文
+\begin{document}
+	
+% 封面和目录页不显示页码
+\pagenumbering{gobble}
+\maketitle
+\begin{abstract}
+
+
+\textbf{对于问题一，}
+
+\textbf{对于问题二，}
+
+\textbf{对于问题三，}
+
+\textbf{对于问题四，}
+
+最后，
+
+
+
+\keywords{关键词；关键词；关键词；关键词；关键词}
+
+\end{abstract}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+%\vspace{-1.4cm} 
+%\tableofcontents  % 目录
+%\newpage
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\pagenumbering{arabic}
+\vspace{-1.4cm} 
+\section{问题提出}
+\subsection{问题背景}
+干燥是中药材加工中的重要环节，直接影响药材的储存与成品品质。热风烘干是常见的中药干燥方式，相关研究已在干燥动力学、水分迁移及工艺优化方面等方面取得一定进展。然而，实际生产中的烘干效果仍容易受到工艺参数影响，参数设置不当可能导致干燥效率低、能源消耗高和成品品质不稳定，而传统优化又存在成本高、周期长等问题。
+
+药材在烘干过程中的内部变化是复杂的，随着烘干进行，药材内部温度和水分浓度会随时间和位置不断变化，水分持续流失还会引起药材尺寸改变，使不同阶段的干燥状态更加难以准确判断。通过揭示药材温度、水分及尺寸的变化规律，精准优化达到规定水分要求所需的烘干时间，可有效提升烘干过程分析的准确性，并为过程的合理控制提供科学依据。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+\subsection{问题重述}
+一根近似圆柱形的中药材，长度为25cm、半径为2cm，初始温度为28℃，初始干基水分浓度为2.55kg/kg。已知烘房温度与水分浓度的变化数据、药材半径变化数据，以及不同烘干阶段所需的材料参数和经验关系，需要建立数学模型解决以下问题。
+
+\textbf{问题1：}  
+根据附件1给出的烘房温度和水分浓度随时间的变化数据，结合附录2中的相关参数，研究预热阶段药材内部不同径向位置的温度和水分浓度变化，并求出指定时刻、指定位置处的对应结果，将对应结果保存至result1.xlsx中。
+
+\textbf{问题2：}  
+将研究范围由预热阶段扩展至完整烘干过程，结合附录3中材料密度、比热容、导热系数及水分扩散系数等经验关系，分析长时间烘干条件下药材内部温度和水分浓度的变化，并将题目要求时刻和位置处的数据保存至result2.xlsx中。
+
+\textbf{问题3：} 
+在完整烘干过程分析的基础上，以药材内部各位置的水分浓度均低于0.15kg/kg作为干燥完成标准，确定药材达到该要求所需的总烘干时间，同时给出烘干过程中的温度和水分浓度分布，将完整结果保存至result3.xlsx。
+
+\textbf{问题4：}  
+考虑实际烘干过程中药材因失水而发生尺寸变化，利用附件2中药材半径随时间的变化数据以及附录4给出的相关经验关系，分析尺寸变化条件下药材内部温度和水分浓度的变化，并重新确定实际烘干时长，保存至result4.xlsx。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{问题分析}
+本题的核心任务是研究药材在干燥过程中的温度场、水分场以及尺寸变化的数学模型，通过数学模型得到中药材的干燥规律。首先基于傅里叶热传导定律和菲克质量扩散定律建立圆柱一维径向热-质传递偏微分模型，进而结合附件的干燥过程中烘房温度，烘房温度与水分浓度数据，药材半径变化数据以及相关参数和经验公式，通过数值方法确定药材内部温度和含水率分布，再根据含水率阈值来确定烘干时间，最后引入移动边界分析药材收缩的影响，实现对烘干过程和烘干效果的定量分析。
+
+\textbf{问题1的分析：}  
+问题1的关键在于建立一维径向傅里叶热导热模型和菲克水分扩散模型，并跟据附件1给出的时变条件和附录2中的常物性参数，求解可得1800s内不同时间、不同径向位置处的药材温度和水分浓度。
+
+\textbf{问题2的分析：}  
+问题2在问题1模型框架基础上，引入附录3中的变物性经验公式，使温度场与水分场形成双向耦合。需要据此分析完整烘干过程，并得到3h内不同时间和径向位置处的温度和水分浓度。对于附件1未覆盖的后续环境条件，可采用末端稳定值进行延拓，并通过敏感性分析评估其影响。
+
+\textbf{问题3的分析：}  
+问题3要求得出药物烘干所需要的时间，关键是在问题2的整个烘干过程的变物性热湿耦合模型的基础上，增加一个全域最大含水率首次达到0.15kg/kg以下的检测，获得药材烘干达标的最短时间。
+
+\textbf{问题4的分析：} 
+问题4与前三问的主要区别在于药材在烘干过程中因失水而发生了收缩，计算区域由问题3的固定半径$R_0$变为随时间变化的半径$R(t)$,物性公式也更改为附录4的经验公式。可在问题2、3模型框架上引入材料坐标，将移动区域映射到固定区间，再改变模型中的物性公式，从初始状态重新计算，即可得到最终的烘干时间。
+
+
+\section{模型假设与符号说明}
+\subsection{模型假设}
+结合药材的几何特征、附件中可用数据及本文的建模范围，作如下假设：
+
+\begin{itemize}[itemindent=2em]
+\item 药材视为均质、各向同性的圆柱体，热量和水分传递以径向为主，忽略轴向不均匀性和端面交换。
+\item 烘干过程中干物质无损失；问题一至问题三的骨架固定，问题四中药材按径向均匀比例收缩。
+\item 将附录给出的$\rho c_p$解释为有效体积热储存系数，干基含水率采用独立的干物质守恒基准。
+\item 附件1中空气水分数值作为药材表面的等效平衡含水率，并与题给传质系数共同构成有效Robin边界。
+\item 主模型不考虑相变潜热、迁移水分携焓和形变功，对这些未闭合机制不人为引入缺乏依据的参数。
+\item 附件数据在实测区间内按分段线性方式插值，超出实测范围后按给定平台或末值延拓，并在灵敏度分析中评估该假设的影响。
+\end{itemize}
+
+\subsection{符号说明}
+
+
+
+
+
+
+
+
+\begin{table}[H]
+	\centering
+	
+	\begin{tabularx}{\textwidth}{CL}
+		\toprule
+		符号    & 说明    \\
+		\midrule
+		$r$ & 药材内的物理径向坐标，m \\
+		$\xi$ & 固定域径向坐标，$\xi=r/a(t)$ \\
+		$R_0,R(t)$ & 药材初始半径与瞬时半径，m \\
+		$T,T_\infty,T_K$ & 药材温度、环境温度与绝对温度 \\
+		$C,C_e$ & 药材干基含水率与等效平衡含水率，kg/kg \\
+		$k,D$ & 导热系数与有效水分扩散系数 \\
+		$\rho,c_p,b$ & 题给密度参数、比热容与有效体积热储存系数 \\
+		$h,h_m$ & 表面换热系数与传质系数 \\
+		$q_T,q_C$ & 向外显热通量与规范化水分通量 \\
+		$C_{\max},t_f$ & 全域最大含水率与首次达标时间 \\
+
+		\bottomrule
+	\end{tabularx}
+	
+	\label{tab:符号说明}
+\end{table}
+
+
+
+
+
+
+
+
+
+
+
+
+% 下列四问尚处于纲要阶段。空标题后的零宽度段落用于保留正常分页点，
+% 待补入正文后可删去本组局部定义。
+\begingroup
+\let\outlineSubsection\subsection
+\let\outlineSubsubsection\subsubsection
+\renewcommand{\subsection}[1]{\outlineSubsection{#1}\mbox{}\par}
+\renewcommand{\subsubsection}[1]{\outlineSubsubsection{#1}\mbox{}\par}
+
+\section{问题一：定物性条件下的短时传热传质}
+
+
+
+
+
+
+
+\subsection{模型原理}
+
+% 说明圆柱径向Fourier导热与Fick扩散机理，并解释早期热扩散与水分扩散的时间尺度差异。
+
+\subsection{数据预处理}
+
+% 读取附件1的烘房温度和水分数据，完成单位统一、异常检查及分段线性插值。
+
+
+
+
+\subsection{模型建立}
+
+\subsubsection{温度控制方程}
+\subsubsection{水分控制方程}
+\subsubsection{初始条件与边界条件}
+\subsubsection{问题一的物性函数}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\subsection{模型求解}
+
+% 说明径向有限体积离散、Backward Euler时间离散、Picard迭代及中心与表面重构。
+
+\subsection{结果分析}
+
+\subsubsection{药材内部温度的时空变化}
+\subsubsection{药材内部含水率的时空变化}
+\subsubsection{1800\,s时的关键结果}
+
+\subsection{灵敏度分析}
+
+% 考察换热系数、传质系数与环境插值方式对早期场量的影响。
+
+\subsection{模型检验}
+
+% 报告解析题对照、零通量极限检验、守恒残差及网格和时间步收敛结果。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ 
+\section{问题二：变物性热--水分耦合过程}
+
+
+\subsection{模型原理}
+
+% 说明含水率对热物性的影响以及温度对水分扩散系数的影响。
+
+\subsection{数据预处理}
+
+% 说明附件1实测区间内的线性插值，以及4 h后50摄氏度和0.05名义平台的延拓规则。
+
+\subsection{模型建立}
+
+\subsubsection{变物性温度方程}
+\subsubsection{温度--水分耦合扩散方程}
+\subsubsection{初始条件与Robin边界}
+\subsubsection{附录3物性函数与参数保护}
+
+\subsection{模型求解}
+
+% 给出每个时间层内的双场Picard耦合迭代、残差判据与失败回退机制。
+
+\subsection{结果分析}
+
+\subsubsection{长时烘干中的温度变化}
+\subsubsection{长时烘干中的含水率变化}
+\subsubsection{温度--水分耦合机制分析}
+
+\subsection{灵敏度分析}
+
+% 分别考察$D$、$h$、$h_m$的$\pm20\%$变化及环境延拓方式对温度和含水率的影响。
+
+\subsection{模型检验}
+
+% 报告规范化水量守恒、有效温度平衡、非线性迭代与网格和时间步检验。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{问题三：全域含水率达标时间}
+
+
+\subsection{模型原理}
+
+% 问题三与问题二共用同一次完整模拟，新增的核心是全域严格达标事件。
+
+\subsection{数据预处理}
+
+% 沿用问题二的环境和物性数据，并构建中心、内部与表面的完整含水率重构场。
+
+\subsection{模型建立}
+
+\subsubsection{全域最大含水率的定义}
+\subsubsection{严格达标事件函数}
+\subsubsection{首次达标时间的数学定义}
+
+\subsection{模型求解}
+
+% 搜索首次穿越区间，从左端检查点重新积分，通过二分定位严格低于0.15的右端状态。
+
+\subsection{结果分析}
+
+\subsubsection{全域最大含水率随时间的变化}
+\subsubsection{达标时间与控制位置}
+\subsubsection{穿越时间、严格达标时间与数值误差}
+
+\subsection{灵敏度分析}
+
+% 比较$D$、$h_m$和环境平台设定对达标时间的影响，并给出有限幅度灵敏度。
+
+\subsection{模型检验}
+
+% 分别固定时间步和空间网格逐级细化，比较场量、通量与终点时间差。
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{问题四：考虑收缩的热--水分传递}
+
+
+\subsection{模型原理}
+
+% 失水收缩会同时改变内部传递距离和表面传递阻力，问题四需从原始初态独立计算。
+
+\subsection{数据预处理}
+
+% 读取附件2的半径--时间数据，完成单位换算、单调性检查、线性插值与72 h后末值冻结。
+
+\subsection{模型建立}
+
+\subsubsection{比例收缩与固定域坐标变换}
+\subsubsection{收缩条件下的温度方程}
+\subsubsection{收缩条件下的水分方程}
+\subsubsection{动边界Robin条件与达标事件}
+\subsubsection{密度--收缩相容性说明}
+
+\subsection{模型求解}
+
+% 说明固定材料坐标上的有限体积求解、瞬时半径更新、域外输出与事件定位。
+
+\subsection{结果分析}
+
+\subsubsection{半径收缩规律}
+\subsubsection{收缩条件下的温度与含水率分布}
+\subsubsection{达标时间及控制位置}
+\subsubsection{问题三与问题四的对比}
+
+\subsection{灵敏度分析}
+
+% 分析$D$、$h_m$、半径插值方式与末值延拓对收缩工况达标时间的影响。
+
+\subsection{模型检验}
+
+% 完成网格和时间步收敛、规范化水量守恒、$D=0$纯收缩极限及域外位置输出检验。
+
+\endgroup
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\section{模型评价}
+
+\subsection{模型的优点}
+\begin{itemize}[itemindent=2em]
+\item 优点1
+\item 优点2
+\item 优点3
+\end{itemize}
+
+\subsection{模型的缺点}
+\begin{itemize}[itemindent=2em]
+\item 缺点1
+\item 缺点2
+\end{itemize}
+
+
+
+
+\subsection{模型的改进}
+
+
+
+
+
+
+\subsection{模型的推广}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+%% 参考文献
+\nocite{*}
+\bibliographystyle{gbt7714-numerical}  % 引用格式
+\bibliography{ref.bib}  % bib源
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+\newpage
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% 附录
+\begin{appendices}
+	
+	
+	
+	
+\section{文件列表}
+\begin{table}[H]
+\centering
+\begin{tabularx}{\textwidth}{LL}
+\toprule
+文件名   & 功能描述 \\
+\midrule
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+数据预处理.py & 预处理程序代码 \\
+q2.py & 问题二程序代码 \\
+q3.c & 问题三程序代码 \\
+q4.cpp & 问题四程序代码 \\
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\bottomrule
+\end{tabularx}
+\label{tab:文件列表}
+\end{table}
+
+
+
+
+
+
+
+
+%\section{代码}
+%\noindent 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%数据预处理.py
+%\lstinputlisting[language=python]{code/1.数据预处理.py}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%q2.py
+%\lstinputlisting[language=python]{code/q2.py}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+%
+%q3.c
+%\lstinputlisting[language=c]{code/q3.c}
+%
+%
+%q4.cpp
+%\lstinputlisting[language=c++]{code/q4.cpp}
+
+\end{appendices}
+\end{document}

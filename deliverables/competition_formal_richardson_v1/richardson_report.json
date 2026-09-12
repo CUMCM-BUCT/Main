@@ -1,0 +1,136 @@
+{
+  "result_classification": "formal",
+  "convergence_verified": true,
+  "space": {
+    "levels": [
+      "N160_dt7p5_grade2",
+      "N320_dt7p5_grade2",
+      "N640_dt7p5_grade2"
+    ],
+    "order": 2,
+    "event_estimates_s": [
+      206923.81591796875,
+      206923.82568359375
+    ],
+    "common_samples": 3449,
+    "gate": {
+      "passed": true,
+      "values": {
+        "temperature_field_C": 3.447810112078287e-05,
+        "moisture_field": 1.5519631861415917e-05,
+        "temperature_center_C": 1.164113854201787e-07,
+        "temperature_surface_C": 8.285852004519256e-10,
+        "temperature_mean_C": 4.670255293603987e-10,
+        "moisture_center": 3.7702760913305156e-08,
+        "moisture_surface": 5.3485348094906016e-09,
+        "moisture_mean": 2.170983481875055e-08,
+        "heat_flux_W_m2": 2.071480764698208e-08,
+        "moisture_flux_m_s": 4.278827861951807e-15,
+        "maximum_moisture": 3.7702760913305156e-08,
+        "event_time_s": 0.009765625
+      },
+      "checks": {
+        "temperature_field_C": true,
+        "moisture_field": true,
+        "temperature_center_C": true,
+        "temperature_surface_C": true,
+        "temperature_mean_C": true,
+        "moisture_center": true,
+        "moisture_surface": true,
+        "moisture_mean": true,
+        "heat_flux_W_m2": true,
+        "moisture_flux_m_s": true,
+        "maximum_moisture": true,
+        "event_time_s": true
+      },
+      "tolerances": {
+        "temperature_field_C": 0.01,
+        "moisture_field": 0.0001,
+        "temperature_center_C": 0.01,
+        "temperature_surface_C": 0.01,
+        "temperature_mean_C": 0.01,
+        "moisture_center": 0.0001,
+        "moisture_surface": 0.0001,
+        "moisture_mean": 0.0001,
+        "heat_flux_W_m2": 0.25,
+        "moisture_flux_m_s": 8e-11,
+        "maximum_moisture": 0.0001,
+        "event_time_s": 1.0
+      }
+    }
+  },
+  "time": {
+    "levels": [
+      "N320_dt15_grade2",
+      "N320_dt7p5_grade2",
+      "N320_dt3p75_grade2"
+    ],
+    "order": 1,
+    "event_estimates_s": [
+      206903.13720703125,
+      206903.12255859375
+    ],
+    "common_samples": 3449,
+    "gate": {
+      "passed": true,
+      "values": {
+        "temperature_field_C": 9.491688523155517e-05,
+        "moisture_field": 7.083349483183454e-05,
+        "temperature_center_C": 8.983534554829475e-05,
+        "temperature_surface_C": 9.058028767583437e-05,
+        "temperature_mean_C": 3.79577000941822e-05,
+        "moisture_center": 1.52324887281452e-06,
+        "moisture_surface": 5.5076203616444275e-05,
+        "moisture_mean": 8.838809217870391e-07,
+        "heat_flux_W_m2": 0.0022645071918958593,
+        "moisture_flux_m_s": 4.406096289324006e-11,
+        "maximum_moisture": 1.52324887281452e-06,
+        "event_time_s": 0.0146484375
+      },
+      "checks": {
+        "temperature_field_C": true,
+        "moisture_field": true,
+        "temperature_center_C": true,
+        "temperature_surface_C": true,
+        "temperature_mean_C": true,
+        "moisture_center": true,
+        "moisture_surface": true,
+        "moisture_mean": true,
+        "heat_flux_W_m2": true,
+        "moisture_flux_m_s": true,
+        "maximum_moisture": true,
+        "event_time_s": true
+      },
+      "tolerances": {
+        "temperature_field_C": 0.01,
+        "moisture_field": 0.0001,
+        "temperature_center_C": 0.01,
+        "temperature_surface_C": 0.01,
+        "temperature_mean_C": 0.01,
+        "moisture_center": 0.0001,
+        "moisture_surface": 0.0001,
+        "moisture_mean": 0.0001,
+        "heat_flux_W_m2": 0.25,
+        "moisture_flux_m_s": 8e-11,
+        "maximum_moisture": 0.0001,
+        "event_time_s": 1.0
+      }
+    }
+  },
+  "crossing_time_s": 206902.40499294107,
+  "formal_event_time_s": 206902.43940700358,
+  "files": {
+    "result2_temperature.csv": {
+      "rows": 10800,
+      "sha256": "190ca6141ac7bb8868589876b06c1fd9f1366c778e13daf1c237238a1e6cc874"
+    },
+    "result2_moisture.csv": {
+      "rows": 10800,
+      "sha256": "f7c014c5df9899065fba0013c0d91796c588a77a32c39cc0557766466d702339"
+    },
+    "result3_moisture.csv": {
+      "rows": 3449,
+      "sha256": "30b15f9b8561b75213278377806b6cae6e35bf761101032c62c2b28021cd0e83"
+    }
+  }
+}

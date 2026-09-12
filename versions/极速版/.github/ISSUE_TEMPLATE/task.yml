@@ -1,0 +1,33 @@
+name: 代码任务
+description: 为一个可独立验证的代码改动分配负责人和文件范围
+title: "[Code] "
+labels: []
+body:
+  - type: input
+    id: owner
+    attributes:
+      label: 唯一负责人
+      placeholder: 姓名或 GitHub 用户名
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 任务目标
+      description: 说明要实现或修复的具体结果。
+    validations:
+      required: true
+  - type: textarea
+    id: files
+    attributes:
+      label: 允许修改的文件
+      description: 逐项列出文件或目录；超出范围需要先沟通。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 验收条件
+      description: 写明运行命令、预期输出或测试要求。
+    validations:
+      required: true

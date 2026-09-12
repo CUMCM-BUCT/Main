@@ -1,0 +1,50 @@
+\begin{thebibliography}{5}
+\providecommand{\natexlab}[1]{#1}
+\providecommand{\url}[1]{#1}
+\expandafter\ifx\csname urlstyle\endcsname\relax\else
+  \urlstyle{same}\fi
+\expandafter\ifx\csname href\endcsname\relax
+  \DeclareUrlCommand\doi{\urlstyle{rm}}
+  \def\eprint#1#2{#2}
+\else
+  \def\doi#1{\href{https://doi.org/#1}{\nolinkurl{#1}}}
+  \let\eprint\href
+\fi
+
+\bibitem[da~Silva et~al.(2014)da~Silva, e~Silva, and Gomes]{silva2014boundary}
+DA~SILVA W~P, E~SILVA C~M~D~P~S, GOMES J~P.
+\newblock Comparison of boundary conditions to describe drying of turmeric
+  ({Curcuma longa}) rhizomes using diffusion models\allowbreak[J/OL].
+\newblock Journal of Food Science and Technology, 2014, 51\allowbreak (11):
+  3181-3189.
+\newblock DOI: \doi{10.1007/s13197-012-0813-x}.
+
+\bibitem[da~Silva et~al.(2014)da~Silva, e~Silva, and
+  Gama]{silva2014thermophysical}
+DA~SILVA W~P, E~SILVA C~M~D~P~S, GAMA F~J~A.
+\newblock Estimation of thermo-physical properties of products with cylindrical
+  shape during drying: The coupling between mass and heat\allowbreak[J/OL].
+\newblock Journal of Food Engineering, 2014, 141: 65-73.
+\newblock DOI: \doi{10.1016/j.jfoodeng.2014.05.010}.
+
+\bibitem[Simal et~al.(1998)Simal, Rosselló, Berna, and
+  Mulet]{simal1998shrinking}
+SIMAL S, ROSSELLó C, BERNA A, et~al.
+\newblock Drying of shrinking cylinder-shaped bodies\allowbreak[J/OL].
+\newblock Journal of Food Engineering, 1998, 37\allowbreak (4): 423-435.
+\newblock DOI: \doi{10.1016/S0260-8774(98)00095-8}.
+
+\bibitem[Adrover et~al.(2020)Adrover, Venditti, and
+  Brasiello]{adrover2020moving}
+ADROVER A, VENDITTI C, BRASIELLO A.
+\newblock A non-isothermal moving-boundary model for continuous and
+  intermittent drying of pears\allowbreak[J/OL].
+\newblock Foods, 2020, 9\allowbreak (11): 1577.
+\newblock DOI: \doi{10.3390/foods9111577}.
+
+\bibitem[Patankar(1980)]{patankar1980numerical}
+PATANKAR S~V.
+\newblock Numerical heat transfer and fluid flow\allowbreak[M].
+\newblock Hemisphere Publishing Corporation, 1980.
+
+\end{thebibliography}
