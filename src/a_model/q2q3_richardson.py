@@ -59,11 +59,20 @@ def gate_result(values: dict[str, float]) -> dict:
 def _load_rows(directory: Path) -> dict[float, dict[str, float]]:
     path = directory / "samples.csv"
     with path.open(encoding="utf-8", newline="") as stream:
+        reader = csv.DictReader(stream)
+        if tuple(reader.fieldnames or ()) != SAMPLE_COLUMNS:
+            raise ValueError(f"Unexpected convergence sample header in {path}.")
         rows = {}
-        for raw in csv.DictReader(stream):
+        previous = None
+        for raw in reader:
             time_s = float(raw["time_s"])
-            if time_s not in rows:
-                rows[time_s] = {key: float(value) for key, value in raw.items()}
+            if not isfinite(time_s) or time_s in rows or (previous is not None and time_s <= previous):
+                raise ValueError(f"Non-increasing or duplicate convergence sample time in {path}.")
+            values = {key: float(value) for key, value in raw.items()}
+            if not all(isfinite(value) for value in values.values()):
+                raise ValueError(f"Non-finite convergence sample in {path}.")
+            rows[time_s] = values
+            previous = time_s
         return rows
 
 
@@ -124,6 +133,13 @@ def _gate_from_triplet(coarse: Path, middle: Path, fine: Path, *, order: int) ->
     second = _extrapolated_rows(middle_rows, fine_rows, order=order)
     values = _metric_max(first, second)
     summaries = [_summary(path) for path in (coarse, middle, fine)]
+    provenance = [(
+        summary.get("signature", {}).get("input_sha256"),
+        summary.get("signature", {}).get("source_file_sha256"),
+        summary.get("sources"),
+    ) for summary in summaries]
+    if any(item != provenance[0] for item in provenance[1:]):
+        raise ValueError("Richardson levels do not share identical input/source provenance.")
     first_event = extrapolate_pair(_event_time(summaries[0]), _event_time(summaries[1]), order=order)
     second_event = extrapolate_pair(_event_time(summaries[1]), _event_time(summaries[2]), order=order)
     values["event_time_s"] = abs(first_event - second_event)
@@ -170,9 +186,12 @@ def build_formal_export(
     space_triplet: tuple[Path, Path, Path],
     time_triplet: tuple[Path, Path, Path],
     output: Path,
+    q2_end_time_s: float = 10800.0,
 ) -> dict:
     """Build formal CSVs only when both Richardson axes pass every V4 gate."""
     output = Path(output)
+    if not isfinite(q2_end_time_s) or q2_end_time_s <= 0:
+        raise ValueError("Q2 output end time must be finite and positive.")
     if output.exists() and any(output.iterdir()):
         raise FileExistsError(f"Formal output directory is not empty: {output}")
     output.mkdir(parents=True, exist_ok=True)
@@ -213,9 +232,13 @@ def build_formal_export(
         raise ValueError("Richardson strict event endpoint is not below the moisture threshold.")
     regular.append((event_time, terminal))
 
+    summaries = [_summary(path) for path in (time_triplet[0], time_triplet[1],
+                                             space_triplet[1], space_triplet[2])]
+
+    integer_end = min(event_time, q2_end_time_s)
     integer_rows = [(float(time_s), _interpolate(regular, float(time_s)))
-                    for time_s in range(1, int(event_time) + 1)]
-    q2_rows = integer_rows + [(event_time, terminal)]
+                    for time_s in range(1, int(integer_end) + 1)]
+    q2_rows = integer_rows + ([(event_time, terminal)] if event_time <= q2_end_time_s else [])
     q3_rows = [(float(time_s), _interpolate(regular, float(time_s)))
                for time_s in range(60, int(event_time) + 1, 60)]
     q3_rows.append((event_time, terminal))

@@ -290,8 +290,23 @@ def export_workbooks_fast(source_dir, result2_template, result3_template, output
         finally:
             book.close()
 
-    write_book(result2, (("温度", CSV_NAMES[0]), ("水分浓度", CSV_NAMES[1])), (width_a, width_b))
-    write_book(result3, (("Sheet1", CSV_NAMES[2]),), (width_3a, width_3b))
-    verify_workbook(result2, {"温度": stats[CSV_NAMES[0]], "水分浓度": stats[CSV_NAMES[1]]})
-    verify_workbook(result3, {"Sheet1": stats[CSV_NAMES[2]]})
+    temporary_paths = []
+    try:
+        for target, sheets, widths in (
+            (result2, (("温度", CSV_NAMES[0]), ("水分浓度", CSV_NAMES[1])), (width_a, width_b)),
+            (result3, (("Sheet1", CSV_NAMES[2]),), (width_3a, width_3b)),
+        ):
+            handle = tempfile.NamedTemporaryFile(prefix=f".{target.stem}-", suffix=".xlsx",
+                                                  dir=output_dir, delete=False)
+            handle.close()
+            temporary = Path(handle.name)
+            temporary_paths.append(temporary)
+            write_book(temporary, sheets, widths)
+        verify_workbook(temporary_paths[0], {"温度": stats[CSV_NAMES[0]], "水分浓度": stats[CSV_NAMES[1]]})
+        verify_workbook(temporary_paths[1], {"Sheet1": stats[CSV_NAMES[2]]})
+        temporary_paths[0].replace(result2)
+        temporary_paths[1].replace(result3)
+    finally:
+        for temporary in temporary_paths:
+            temporary.unlink(missing_ok=True)
     return result2, result3
